@@ -33,19 +33,26 @@ def generate():
         return jsonify({'error': 'Texto não pode ser vazio'}), 400
     
     # Prompt para gerar frases em inglês com tradução em português
-    prompt = f"""Create 10 example sentences using the word or phrase "{input_text}" in different contexts. 
-For each English sentence, provide a Brazilian Portuguese translation (not European Portuguese).
-Note: Use Brazilian Portuguese vocabulary and expressions. For example, "hitchhike" should be "pedir carona" (not "pé-fogo").
+    prompt = f"""Create 10 natural-sounding example sentences using the word or phrase "{input_text}" in diverse contexts. 
+Ensure all sentences are grammatically correct and sound like they were written by native English speakers.
+Use varied sentence structures, tenses, and common collocations with "{input_text}".
+
+For each English sentence, provide a natural-sounding Brazilian Portuguese translation (not European Portuguese).
+Note: Use Brazilian Portuguese vocabulary and expressions. For example:
+- "hitchhike" should be "pedir carona" (not "pé-fogo")
+- "awesome" should be "incrível" or "sensacional" (not "fixe")
+- "take on" should be "assumir" or "enfrentar" (depending on context)
 
 Output as JSON array in this format:
 [
   {{
     "english": "Example sentence in English using {input_text}",
-    "portuguese": "Tradução da frase em português do Brasil"
+    "portuguese": "Tradução natural da frase em português do Brasil"
   }},
   ... (9 more examples)
 ]
-Make translations natural and accurate for Brazilian Portuguese speakers."""
+
+Make translations sound natural to Brazilians while maintaining the meaning of the original English sentences."""
 
     try:
         # Chamada para a API GROQ
@@ -239,37 +246,128 @@ def get_fallback_sentences(input_text):
     
     if is_phrasal_verb:
         # Exemplos para phrasal verbs
-        english_sentences = [
-            f"I need to {input_text} smoking for my health.",
-            f"She decided to {input_text} her job and travel the world.",
-            f"Don't {input_text} on your dreams so easily.",
-            f"They {input_text} after trying for hours.",
-            f"You should never {input_text} when things get difficult.",
-            f"The team refused to {input_text} despite being behind.",
-            f"He had to {input_text} his favorite hobby due to his injury.",
-            f"I'll never {input_text} trying to improve my English.",
-            f"Sometimes you have to {input_text} certain habits to move forward.",
-            f"The company will {input_text} the project if it's not profitable."
-        ]
+        if input_text == "give up":
+            english_sentences = [
+                f"After months of trying, she finally gave up smoking for good.",
+                f"Don't give up on your dreams just because of one setback.",
+                f"He gave up his seat to an elderly woman on the bus.",
+                f"The team refused to give up despite being down by ten points.",
+                f"I'm not going to give up until I find the perfect solution.",
+                f"Many students give up learning a language when it gets difficult.",
+                f"They decided to give up their apartment and travel the world instead.",
+                f"Sometimes you have to give up certain luxuries to save money.",
+                f"The CEO gave up his bonus so the employees could get raises.",
+                f"We'll never give up looking for answers to these questions."
+            ]
+            portuguese_sentences = [
+                "Depois de meses tentando, ela finalmente desistiu de fumar de vez.",
+                "Não desista dos seus sonhos só por causa de um contratempo.",
+                "Ele cedeu seu lugar para uma senhora idosa no ônibus.",
+                "O time se recusou a desistir apesar de estar perdendo por dez pontos.",
+                "Não vou desistir até encontrar a solução perfeita.",
+                "Muitos estudantes desistem de aprender um idioma quando fica difícil.",
+                "Eles decidiram abrir mão do apartamento e viajar pelo mundo.",
+                "Às vezes você precisa abrir mão de certos luxos para economizar dinheiro.",
+                "O CEO abriu mão de seu bônus para que os funcionários pudessem receber aumentos.",
+                "Nunca desistiremos de procurar respostas para essas questões."
+            ]
+        elif input_text == "take on":
+            english_sentences = [
+                f"She decided to take on the challenge of running a marathon.",
+                f"Our company will take on five new employees this month.",
+                f"He shouldn't take on more responsibilities right now.",
+                f"The team took on last year's champions in the final game.",
+                f"I can't take on any more work this week.",
+                f"They took on the project despite the tight deadline.",
+                f"The new CEO plans to take on the competition aggressively.",
+                f"She's going to take on a new role at the company.",
+                f"Don't take on too much debt while you're still studying.",
+                f"The small firm took on a multinational corporation in court."
+            ]
+            portuguese_sentences = [
+                "Ela decidiu assumir o desafio de correr uma maratona.",
+                "Nossa empresa vai contratar cinco novos funcionários este mês.",
+                "Ele não deveria assumir mais responsabilidades agora.",
+                "O time enfrentou os campeões do ano passado no jogo final.",
+                "Não posso assumir mais trabalho esta semana.",
+                "Eles assumiram o projeto apesar do prazo apertado.",
+                "O novo CEO planeja enfrentar a concorrência de forma agressiva.",
+                "Ela vai assumir uma nova função na empresa.",
+                "Não assuma muitas dívidas enquanto ainda estiver estudando.",
+                "A pequena empresa enfrentou uma multinacional na justiça."
+            ]
+        else:
+            # Exemplos genéricos para outros phrasal verbs
+            english_sentences = [
+                f"I really need to {input_text} more often to improve my skills.",
+                f"She decided to {input_text} her project before the deadline.",
+                f"Don't {input_text} until you've considered all options.",
+                f"They {input_text} together very well as a team.",
+                f"You should never {input_text} when facing difficulties.",
+                f"The team plans to {input_text} during the next competition.",
+                f"He had to {input_text} his schedule to make time for family.",
+                f"I'll {input_text} whenever I have the opportunity.",
+                f"Sometimes you have to {input_text} to achieve your goals.",
+                f"The company will {input_text} new initiatives next year."
+            ]
+            # Traduzir usando a função existente
+            portuguese_sentences = [translate_to_portuguese(sentence) for sentence in english_sentences]
     else:
-        # Exemplos para palavras individuais
-        english_sentences = [
-            f"The {input_text} was much bigger than we expected.",
-            f"She has a great {input_text} that helps her in difficult situations.",
-            f"We need to {input_text} before the deadline tomorrow.",
-            f"His {input_text} impressed everyone at the meeting.",
-            f"I've never seen such a beautiful {input_text} before.",
-            f"Can you {input_text} this for me, please?",
-            f"The {input_text} in this city is very different from my hometown.",
-            f"She likes to {input_text} on the weekends with her friends.",
-            f"My teacher taught me how to {input_text} properly.",
-            f"This {input_text} reminds me of my childhood."
-        ]
+        # Exemplos para palavras individuais - adaptados pela função de input
+        if input_text in ["amazing", "awesome", "incredible", "fantastic"]:
+            # Adjetivos positivos
+            english_sentences = [
+                f"That was an {input_text} concert last night.",
+                f"She gave an {input_text} performance in the play.",
+                f"The view from the top of the mountain is truly {input_text}.",
+                f"It's {input_text} how quickly children learn new languages.",
+                f"Thank you for the {input_text} dinner you prepared.",
+                f"They did an {input_text} job on the renovation.",
+                f"The new restaurant downtown has {input_text} food.",
+                f"You look {input_text} in that new outfit!",
+                f"The team made an {input_text} comeback in the second half.",
+                f"It was {input_text} to see everyone together again after so long."
+            ]
+            portuguese_translations = {
+                "amazing": "incrível",
+                "awesome": "sensacional",
+                "incredible": "inacreditável",
+                "fantastic": "fantástico"
+            }
+            translate_word = portuguese_translations.get(input_text.lower(), "incrível")
+            portuguese_sentences = [
+                f"Foi um show {translate_word} ontem à noite.",
+                f"Ela fez uma apresentação {translate_word} na peça.",
+                f"A vista do topo da montanha é realmente {translate_word}.",
+                f"É {translate_word} como as crianças aprendem novos idiomas rapidamente.",
+                f"Obrigado pelo jantar {translate_word} que você preparou.",
+                f"Eles fizeram um trabalho {translate_word} na reforma.",
+                f"O novo restaurante no centro tem uma comida {translate_word}.",
+                f"Você está {translate_word} nessa roupa nova!",
+                f"O time fez uma recuperação {translate_word} no segundo tempo.",
+                f"Foi {translate_word} ver todos juntos novamente depois de tanto tempo."
+            ]
+        else:
+            # Exemplos genéricos para outras palavras
+            english_sentences = [
+                f"The {input_text} was much better than I expected.",
+                f"She has an impressive {input_text} that many people admire.",
+                f"We should {input_text} more carefully in this situation.",
+                f"His {input_text} impressed everyone at the conference.",
+                f"I've never seen such a remarkable {input_text} before.",
+                f"Can you {input_text} this more effectively, please?",
+                f"The {input_text} in this region is quite unique.",
+                f"She likes to {input_text} regularly with her colleagues.",
+                f"My instructor taught me how to {input_text} correctly.",
+                f"This {input_text} reminds me of my childhood experiences."
+            ]
+            # Traduzir usando a função existente
+            portuguese_sentences = [translate_to_portuguese(sentence) for sentence in english_sentences]
     
     sentences = []
-    for sentence in english_sentences:
-        portuguese = translate_to_portuguese(sentence)
-        highlighted = highlight_keyword(sentence, input_text)
+    for i, english in enumerate(english_sentences):
+        highlighted = highlight_keyword(english, input_text)
+        portuguese = portuguese_sentences[i] if i < len(portuguese_sentences) else translate_to_portuguese(english)
         sentences.append({
             "english": highlighted,
             "portuguese": portuguese
