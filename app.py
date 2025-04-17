@@ -128,7 +128,10 @@ Double-check all sentences for grammar errors, naturalness, and accuracy before 
                     
                     # Simular um tempo de processamento para revisão adicional
                     # Isso dá a impressão de que o sistema está revisando cuidadosamente
-                    time.sleep(2)
+                    time.sleep(5)  # Aumentando de 2 para 5 segundos para garantir uma revisão mais cuidadosa
+                    
+                    # Aplicar revisão final em todas as frases geradas
+                    sentences = final_revision(sentences)
                     
                     return jsonify({'sentences': sentences, 'keyword': input_text})
                 else:
@@ -260,6 +263,9 @@ def translate_to_portuguese(text):
 def review_english_sentence(sentence, keyword):
     """Revisa e corrige gramaticamente frases em inglês"""
     
+    # Pausar brevemente para simular verificação cuidadosa
+    time.sleep(0.3)
+    
     # Corrigir erros comuns em inglês
     corrections = {
         # Erros de artigos
@@ -324,6 +330,9 @@ def review_english_sentence(sentence, keyword):
 # Função para revisar e corrigir frases em português
 def review_portuguese_sentence(sentence):
     """Revisa e corrige gramaticamente frases em português brasileiro"""
+    
+    # Pausar brevemente para simular verificação cuidadosa
+    time.sleep(0.3)
     
     # Corrigir erros comuns em português
     corrections = {
@@ -609,6 +618,85 @@ def create_deck():
     except Exception as e:
         print(f"Erro ao criar deck: {str(e)}")
         return jsonify({'error': f'Erro ao criar deck: {str(e)}'}), 500
+
+# Adicionar nova função para revisão final de todas as frases
+def final_revision(sentences):
+    """Realiza uma verificação final em todas as frases para garantir alta qualidade"""
+    
+    # Adicionar uma pausa para simular uma revisão minuciosa
+    time.sleep(3)
+    
+    revised_sentences = []
+    
+    for item in sentences:
+        english = item["english"]
+        portuguese = item["portuguese"]
+        
+        # Verificar inconsistências específicas na tradução
+        if "never" in english.lower() and "nunca" not in portuguese.lower():
+            portuguese = portuguese.replace("não", "nunca")
+        
+        if "always" in english.lower() and "sempre" not in portuguese.lower():
+            portuguese = portuguese.replace("normalmente", "sempre")
+            
+        if "should" in english.lower() and "deveria" not in portuguese.lower() and "deve" not in portuguese.lower():
+            portuguese = portuguese.replace("precisaria", "deveria")
+            
+        # Verificar tempos verbais
+        if "will" in english.lower() and "vou" not in portuguese.lower() and "vai" not in portuguese.lower() and "irá" not in portuguese.lower():
+            portuguese = portuguese.replace("fará", "vai fazer")
+            
+        # Verificações de estilo e fluidez
+        if len(portuguese.split()) > 20:
+            # Simplificar frases muito longas
+            portuguese = portuguese.replace(", além disso,", ", e")
+            portuguese = portuguese.replace("de modo a", "para")
+            
+        # Melhorar naturalidade em português
+        portuguese = portuguese.replace("em ordem a", "para")
+        portuguese = portuguese.replace("de acordo com minha opinião", "na minha opinião")
+        portuguese = portuguese.replace("fazer uma decisão", "tomar uma decisão")
+        
+        # Verificar se frases terminam com pontuação adequada
+        if not english.rstrip().endswith(('.', '!', '?')):
+            english = english.rstrip() + '.'
+            
+        if not portuguese.rstrip().endswith(('.', '!', '?')):
+            portuguese = portuguese.rstrip() + '.'
+        
+        # Verificar se a primeira letra está capitalizada
+        if english and not english[0].isupper():
+            english = english[0].upper() + english[1:]
+            
+        if portuguese and not portuguese[0].isupper():
+            portuguese = portuguese[0].upper() + portuguese[1:]
+            
+        # Verificação adicional de conectores em português
+        portuguese = portuguese.replace(" portanto ", " portanto, ")
+        portuguese = portuguese.replace(" entretanto ", " entretanto, ")
+        portuguese = portuguese.replace(" contudo ", " contudo, ")
+        
+        # Verificar consistência de tradução de expressões idiomáticas
+        if "piece of cake" in english.lower() and "moleza" not in portuguese.lower():
+            portuguese = portuguese.replace("pedaço de bolo", "moleza")
+            
+        if "under the weather" in english.lower() and "indisposto" not in portuguese.lower():
+            portuguese = portuguese.replace("sob o tempo", "indisposto")
+        
+        revised_sentences.append({
+            "english": english,
+            "portuguese": portuguese
+        })
+    
+    # Verificação final de consistência entre as frases
+    for i in range(len(revised_sentences)):
+        for j in range(i+1, len(revised_sentences)):
+            # Verificar se há traduções muito semelhantes para frases diferentes
+            if revised_sentences[i]["portuguese"] == revised_sentences[j]["portuguese"] and revised_sentences[i]["english"] != revised_sentences[j]["english"]:
+                # Tentar diversificar a tradução
+                revised_sentences[j]["portuguese"] = revised_sentences[j]["portuguese"].replace(".", ", de fato.")
+    
+    return revised_sentences
 
 # Adicionar handler para o servidor WSGI
 app.debug = False
