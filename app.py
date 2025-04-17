@@ -34,16 +34,18 @@ def generate():
     
     # Prompt para gerar frases em inglês com tradução em português
     prompt = f"""Create 10 example sentences using the word or phrase "{input_text}" in different contexts. 
-For each English sentence, provide a Portuguese translation.
+For each English sentence, provide a Brazilian Portuguese translation (not European Portuguese).
+Note: Use Brazilian Portuguese vocabulary and expressions. For example, "hitchhike" should be "pedir carona" (not "pé-fogo").
+
 Output as JSON array in this format:
 [
   {{
     "english": "Example sentence in English using {input_text}",
-    "portuguese": "Tradução da frase em português"
+    "portuguese": "Tradução da frase em português do Brasil"
   }},
   ... (9 more examples)
 ]
-Make translations natural and accurate."""
+Make translations natural and accurate for Brazilian Portuguese speakers."""
 
     try:
         # Chamada para a API GROQ
@@ -138,8 +140,9 @@ def highlight_keyword(text, keyword):
 
 # Função para traduzir texto para português como fallback
 def translate_to_portuguese(text):
-    """Tradução básica de frases simples em inglês para português"""
+    """Tradução básica de frases simples em inglês para português brasileiro"""
     translations = {
+        # Verbos e expressões comuns
         "I need to": "Eu preciso",
         "She decided to": "Ela decidiu",
         "Don't": "Não",
@@ -150,6 +153,8 @@ def translate_to_portuguese(text):
         "I'll never": "Eu nunca vou",
         "Sometimes you have to": "Às vezes você tem que",
         "The company will": "A empresa vai",
+        
+        # Substantivos e objetos
         "smoking": "fumar",
         "her job": "seu emprego",
         "dreams": "sonhos",
@@ -162,7 +167,61 @@ def translate_to_portuguese(text):
         "certain habits": "certos hábitos",
         "to move forward": "para seguir em frente",
         "the project": "o projeto",
-        "if it's not profitable": "se não for lucrativo"
+        "if it's not profitable": "se não for lucrativo",
+        
+        # Phrasal verbs e expressões idiomáticas
+        "hitchhike": "pedir carona",
+        "give up": "desistir",
+        "take on": "assumir",
+        "break down": "quebrar",
+        "look up": "procurar",
+        "turn in": "entregar",
+        "get along": "se dar bem",
+        "put off": "adiar",
+        "figure out": "descobrir",
+        "run into": "encontrar por acaso",
+        "show off": "se exibir",
+        "work out": "resolver",
+        "set up": "configurar",
+        "hang out": "passar tempo",
+        "speak up": "falar mais alto",
+        "cheer up": "animar",
+        "get over": "superar",
+        "go over": "revisar",
+        "pick up": "pegar",
+        "in a nutshell": "em resumo",
+        "piece of cake": "moleza",
+        "once in a blue moon": "de vez em quando",
+        "break a leg": "boa sorte",
+        "kill two birds with one stone": "matar dois coelhos com uma cajadada só",
+        "hit the nail on the head": "acertar na mosca",
+        "bite the bullet": "encarar a situação",
+        "on the same page": "na mesma sintonia",
+        "under the weather": "indisposto",
+        "cost an arm and a leg": "custar os olhos da cara",
+        "cut corners": "economizar esforços",
+        "call it a day": "dar o dia por encerrado",
+        "let the cat out of the bag": "contar um segredo",
+        "it's not rocket science": "não é nenhum bicho de sete cabeças",
+        "out of the blue": "do nada",
+        "a blessing in disguise": "um mal que vem para bem",
+        "beat around the bush": "enrolar",
+        
+        # Gírias e expressões regionais comuns
+        "cool": "legal",
+        "awesome": "incrível",
+        "hang out": "dar um rolê",
+        "buddy": "cara",
+        "check out": "dar uma olhada",
+        "rip-off": "roubada",
+        "no big deal": "sem problemas",
+        "hands down": "sem dúvida",
+        "all set": "tudo pronto",
+        "way to go": "mandou bem",
+        "on the fence": "em cima do muro",
+        "mind-blowing": "de cair o queixo",
+        "sketchy": "suspeito",
+        "what's up": "e aí",
     }
     
     translated = text
@@ -173,19 +232,39 @@ def translate_to_portuguese(text):
 
 # Função para gerar frases de exemplo como fallback
 def get_fallback_sentences(input_text):
-    """Gera frases de exemplo com traduções em português para o fallback"""
-    english_sentences = [
-        f"I need to {input_text} smoking for my health.",
-        f"She decided to {input_text} her job and travel the world.",
-        f"Don't {input_text} on your dreams so easily.",
-        f"They {input_text} after trying for hours.",
-        f"You should never {input_text} when things get difficult.",
-        f"The team refused to {input_text} despite being behind.",
-        f"He had to {input_text} his favorite hobby due to his injury.",
-        f"I'll never {input_text} trying to improve my English.",
-        f"Sometimes you have to {input_text} certain habits to move forward.",
-        f"The company will {input_text} the project if it's not profitable."
-    ]
+    """Gera frases de exemplo com traduções em português brasileiro para o fallback"""
+    
+    # Determinar o tipo de entrada para gerar exemplos mais apropriados
+    is_phrasal_verb = ' ' in input_text.strip()
+    
+    if is_phrasal_verb:
+        # Exemplos para phrasal verbs
+        english_sentences = [
+            f"I need to {input_text} smoking for my health.",
+            f"She decided to {input_text} her job and travel the world.",
+            f"Don't {input_text} on your dreams so easily.",
+            f"They {input_text} after trying for hours.",
+            f"You should never {input_text} when things get difficult.",
+            f"The team refused to {input_text} despite being behind.",
+            f"He had to {input_text} his favorite hobby due to his injury.",
+            f"I'll never {input_text} trying to improve my English.",
+            f"Sometimes you have to {input_text} certain habits to move forward.",
+            f"The company will {input_text} the project if it's not profitable."
+        ]
+    else:
+        # Exemplos para palavras individuais
+        english_sentences = [
+            f"The {input_text} was much bigger than we expected.",
+            f"She has a great {input_text} that helps her in difficult situations.",
+            f"We need to {input_text} before the deadline tomorrow.",
+            f"His {input_text} impressed everyone at the meeting.",
+            f"I've never seen such a beautiful {input_text} before.",
+            f"Can you {input_text} this for me, please?",
+            f"The {input_text} in this city is very different from my hometown.",
+            f"She likes to {input_text} on the weekends with her friends.",
+            f"My teacher taught me how to {input_text} properly.",
+            f"This {input_text} reminds me of my childhood."
+        ]
     
     sentences = []
     for sentence in english_sentences:
