@@ -1,0 +1,12 @@
+[33mcommit 1f776a7ad524c5de0db52f5a75242d9519a35fa9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: gadielmachado <gadielmachado.bm@gmail.com>
+Date:   Thu Apr 17 11:04:40 2025 -0300
+
+    Versão inicial do gerador de flashcards para Anki
+
+.gitignore
+README.md
+app.py
+package-lock.json
+requirements.txt
+templates/index.html
