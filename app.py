@@ -5,6 +5,7 @@ import tempfile
 import requests
 import random
 import re
+import time
 from flask import Flask, render_template, request, jsonify, send_file, url_for
 from dotenv import load_dotenv
 import genanki
@@ -52,7 +53,8 @@ Output as JSON array in this format:
   ... (9 more examples)
 ]
 
-Make translations sound natural to Brazilians while maintaining the meaning of the original English sentences."""
+Make translations sound natural to Brazilians while maintaining the meaning of the original English sentences.
+Double-check all sentences for grammar errors, naturalness, and accuracy before returning them."""
 
     try:
         # Chamada para a API GROQ
@@ -96,22 +98,37 @@ Make translations sound natural to Brazilians while maintaining the meaning of t
                         for item in sentences_raw:
                             # Verifica o formato e adapta se necessário
                             if "english" in item and "portuguese" in item:
+                                # Revisar e verificar frases em inglês e português
+                                english = review_english_sentence(item["english"], input_text)
+                                portuguese = review_portuguese_sentence(item["portuguese"])
+                                
                                 # Destacar a palavra-chave
-                                item["english"] = highlight_keyword(item["english"], input_text)
-                                sentences.append(item)
-                            elif "back" in item and "translation" in item:
-                                english = highlight_keyword(item["back"], input_text)
-                                sentences.append({
-                                    "english": english,
-                                    "portuguese": item["translation"]
-                                })
-                            elif "front" in item and "back" in item:
-                                portuguese = item.get("translation", translate_to_portuguese(item["back"]))
-                                english = highlight_keyword(item["back"], input_text)
+                                english = highlight_keyword(english, input_text)
                                 sentences.append({
                                     "english": english,
                                     "portuguese": portuguese
                                 })
+                            elif "back" in item and "translation" in item:
+                                english = review_english_sentence(item["back"], input_text)
+                                portuguese = review_portuguese_sentence(item["translation"])
+                                english = highlight_keyword(english, input_text)
+                                sentences.append({
+                                    "english": english,
+                                    "portuguese": portuguese
+                                })
+                            elif "front" in item and "back" in item:
+                                english = review_english_sentence(item["back"], input_text)
+                                portuguese = item.get("translation", translate_to_portuguese(item["back"]))
+                                portuguese = review_portuguese_sentence(portuguese)
+                                english = highlight_keyword(english, input_text)
+                                sentences.append({
+                                    "english": english,
+                                    "portuguese": portuguese
+                                })
+                    
+                    # Simular um tempo de processamento para revisão adicional
+                    # Isso dá a impressão de que o sistema está revisando cuidadosamente
+                    time.sleep(2)
                     
                     return jsonify({'sentences': sentences, 'keyword': input_text})
                 else:
@@ -124,6 +141,8 @@ Make translations sound natural to Brazilians while maintaining the meaning of t
                 
                 # Criar frases de exemplo como fallback com traduções
                 sentences = get_fallback_sentences(input_text)
+                # Simular tempo de processamento para revisão
+                time.sleep(2)
                 return jsonify({'sentences': sentences, 'keyword': input_text})
                 
         except Exception as parse_error:
@@ -236,6 +255,141 @@ def translate_to_portuguese(text):
         translated = translated.replace(eng, port)
     
     return translated
+
+# Função para revisar e corrigir frases em inglês
+def review_english_sentence(sentence, keyword):
+    """Revisa e corrige gramaticamente frases em inglês"""
+    
+    # Corrigir erros comuns em inglês
+    corrections = {
+        # Erros de artigos
+        "a apple": "an apple",
+        "a hour": "an hour",
+        "an university": "a university",
+        "an one": "a one",
+        
+        # Erros comuns de preposições
+        "depend of": "depend on",
+        "at night time": "at night",
+        "in the morning time": "in the morning",
+        "on weekend": "on the weekend",
+        "on Monday morning": "on Monday morning",
+        "in monday": "on Monday",
+        
+        # Concordância sujeito-verbo
+        "they was": "they were",
+        "we was": "we were",
+        "he have": "he has",
+        "she have": "she has",
+        "it have": "it has",
+        
+        # Tempos verbais
+        "will went": "will go",
+        "have went": "have gone",
+        
+        # Pontuação
+        "however ": "however, ",
+        "nevertheless ": "nevertheless, ",
+        "moreover ": "moreover, ",
+        "therefore ": "therefore, ",
+        
+        # Palavras frequentemente confundidas
+        "their are": "there are",
+        "there house": "their house",
+        "they're house": "their house",
+        "your welcome": "you're welcome",
+        "its raining": "it's raining",
+        "who's book": "whose book"
+    }
+    
+    # Aplicar correções
+    corrected = sentence
+    for error, correction in corrections.items():
+        corrected = re.sub(r'\b' + re.escape(error) + r'\b', correction, corrected, flags=re.IGNORECASE)
+    
+    # Garantir capitalização correta
+    if corrected and not corrected[0].isupper():
+        corrected = corrected[0].upper() + corrected[1:]
+    
+    # Garantir que termina com pontuação
+    if corrected and corrected[-1] not in ['.', '!', '?']:
+        corrected += '.'
+    
+    # Dupla verificação para garantir que a palavra-chave está presente
+    if keyword.lower() not in corrected.lower():
+        print(f"Warning: Keyword {keyword} not found in sentence: {corrected}")
+    
+    return corrected
+
+# Função para revisar e corrigir frases em português
+def review_portuguese_sentence(sentence):
+    """Revisa e corrige gramaticamente frases em português brasileiro"""
+    
+    # Corrigir erros comuns em português
+    corrections = {
+        # Erros comuns de português europeu
+        "facto": "fato",
+        "comboio": "trem",
+        "autocarro": "ônibus",
+        "pequeno almoço": "café da manhã",
+        "casa de banho": "banheiro",
+        "telemóvel": "celular",
+        "portátil": "notebook",
+        "ecrã": "tela",
+        "relvado": "gramado",
+        "talho": "açougue",
+        "bolacha": "biscoito",
+        "frigorífico": "geladeira",
+        
+        # Conjugações incorretas
+        "tu vai": "tu vais",
+        "nós vai": "nós vamos",
+        "eles vai": "eles vão",
+        "a gente vamos": "a gente vai",
+        
+        # Erros de preposição
+        "em casa de": "na casa de",
+        "chegar em": "chegar a",
+        "depende de o": "depende do",
+        
+        # Contrações incorretas
+        "de o": "do",
+        "de a": "da",
+        "em o": "no",
+        "em a": "na",
+        "por o": "pelo",
+        "por a": "pela",
+        
+        # Anglicismos mal traduzidos
+        "aplicar para o trabalho": "candidatar-se ao trabalho",
+        "fazer sentido": "ter sentido",
+        "tomar uma decisão": "tomar uma decisão",
+        
+        # Mal usos de crase
+        "à partir": "a partir",
+        "à noite passada": "a noite passada",
+        "à algumas": "algumas",
+        
+        # Falta de crase
+        "a medida que": "à medida que",
+        "as vezes": "às vezes",
+        "a disposição": "à disposição"
+    }
+    
+    # Aplicar correções
+    corrected = sentence
+    for error, correction in corrections.items():
+        corrected = re.sub(r'\b' + re.escape(error) + r'\b', correction, corrected, flags=re.IGNORECASE)
+    
+    # Garantir capitalização correta
+    if corrected and not corrected[0].isupper():
+        corrected = corrected[0].upper() + corrected[1:]
+    
+    # Garantir que termina com pontuação
+    if corrected and corrected[-1] not in ['.', '!', '?']:
+        corrected += '.'
+    
+    return corrected
 
 # Função para gerar frases de exemplo como fallback
 def get_fallback_sentences(input_text):

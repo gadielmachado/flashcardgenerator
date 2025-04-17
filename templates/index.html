@@ -65,6 +65,13 @@
             margin: 20px auto;
             display: none;
         }
+        .processing-message {
+            text-align: center;
+            color: #555;
+            font-style: italic;
+            margin: 10px 0;
+            display: none;
+        }
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -101,6 +108,10 @@
                     </div>
 
                     <div class="loader" id="loader"></div>
+                    <div class="processing-message" id="processing-message">
+                        <p>Gerando e revisando frases naturais em inglês e português...</p>
+                        <p>Este processo pode levar alguns segundos para garantir qualidade.</p>
+                    </div>
                     
                     <div id="results-container" class="d-none">
                         <h3 class="mb-3">10 Exemplos de Uso:</h3>
@@ -244,10 +255,12 @@
 
             function showLoader() {
                 loader.style.display = 'block';
+                document.getElementById('processing-message').style.display = 'block';
             }
 
             function hideLoader() {
                 loader.style.display = 'none';
+                document.getElementById('processing-message').style.display = 'none';
             }
 
             function showError(message) {
