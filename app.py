@@ -5,16 +5,20 @@ import tempfile
 import requests
 import random
 import re
-from flask import Flask, render_template, request, jsonify, send_file
+from flask import Flask, render_template, request, jsonify, send_file, url_for
 from dotenv import load_dotenv
 import genanki
 
 # Carregar variáveis de ambiente
 load_dotenv()
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static')
 # Definir a chave API diretamente
 GROQ_API_KEY = "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"
+
+@app.route('/favicon.ico')
+def favicon():
+    return app.send_static_file('favicon.ico')
 
 @app.route('/')
 def index():
