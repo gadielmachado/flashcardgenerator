@@ -275,5 +275,12 @@ def create_deck():
         print(f"Erro ao criar deck: {str(e)}")
         return jsonify({'error': f'Erro ao criar deck: {str(e)}'}), 500
 
+# Adicionar handler para o servidor WSGI
+app.debug = False
+
+# Exportar app para Vercel
 if __name__ == '__main__':
-    app.run(debug=True) 
+    app.run(debug=True)
+else:
+    # Para o Vercel - importante que a variável se chame 'app'
+    app = app 
