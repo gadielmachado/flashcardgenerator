@@ -112,8 +112,29 @@
                         <div id="sentences-container"></div>
                         
                         <div class="text-center mt-4">
+                            <div class="mb-3">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="exportFormat" id="formatApkg" value="apkg" checked>
+                                    <label class="form-check-label" for="formatApkg">Novo Deck (.apkg)</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="exportFormat" id="formatCsv" value="csv">
+                                    <label class="form-check-label" for="formatCsv">Adicionar a Deck Existente (.csv)</label>
+                                </div>
+                                <div id="csvInstructions" class="alert alert-info mt-2 d-none">
+                                    <p class="mb-0"><strong>Como importar CSV para um deck existente:</strong></p>
+                                    <ol class="mb-0 text-start">
+                                        <li>No Anki, abra o deck onde deseja adicionar os cartões</li>
+                                        <li>Clique em "Arquivo" > "Importar"</li>
+                                        <li>Selecione o arquivo CSV baixado</li>
+                                        <li>Verifique se as colunas "front" e "back" estão corretamente mapeadas</li>
+                                        <li>Selecione o deck de destino e o tipo de nota (Basic)</li>
+                                        <li>Clique em "Importar"</li>
+                                    </ol>
+                                </div>
+                            </div>
                             <button class="btn btn-success" id="download-btn">
-                                <i class="bi bi-download"></i> Baixar Deck Anki
+                                <i class="bi bi-download"></i> Baixar Frases
                             </button>
                         </div>
                     </div>
@@ -182,8 +203,9 @@
                 showLoader();
                 
                 try {
-                    const firstSentence = generatedSentences[0];
                     const word = inputText.value.trim();
+                    // Obter o formato selecionado
+                    const format = document.querySelector('input[name="exportFormat"]:checked').value;
                     
                     const response = await fetch('/create-deck', {
                         method: 'POST',
@@ -192,26 +214,29 @@
                         },
                         body: JSON.stringify({
                             sentences: generatedSentences,
-                            word: word
+                            word: word,
+                            format: format
                         }),
                     });
 
                     if (response.ok) {
+                        // Criar um link para download e clicar automaticamente
                         const blob = await response.blob();
                         const url = window.URL.createObjectURL(blob);
                         const a = document.createElement('a');
                         a.style.display = 'none';
                         a.href = url;
-                        a.download = `english_examples_${firstSentence.english}.apkg`;
+                        const fileExtension = format === 'csv' ? 'csv' : 'apkg';
+                        a.download = `english_examples_${word}.${fileExtension}`;
                         document.body.appendChild(a);
                         a.click();
                         window.URL.revokeObjectURL(url);
                     } else {
                         const errorData = await response.json();
-                        showError(errorData.error || 'Erro ao criar o deck.');
+                        showError(errorData.error || 'Erro ao criar o arquivo.');
                     }
                 } catch (error) {
-                    showError('Erro ao baixar o deck. Por favor, tente novamente.');
+                    showError('Erro ao baixar o arquivo. Por favor, tente novamente.');
                 } finally {
                     hideLoader();
                 }
@@ -263,6 +288,18 @@
                 if (event.key === 'Enter') {
                     generateBtn.click();
                 }
+            });
+
+            // Mostrar ou esconder instruções quando o formato é alterado
+            document.querySelectorAll('input[name="exportFormat"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const csvInstructions = document.getElementById('csvInstructions');
+                    if (this.value === 'csv') {
+                        csvInstructions.classList.remove('d-none');
+                    } else {
+                        csvInstructions.classList.add('d-none');
+                    }
+                });
             });
         });
     </script>

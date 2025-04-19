@@ -5,6 +5,7 @@ import tempfile
 import requests
 import random
 import re
+import csv
 from flask import Flask, render_template, request, jsonify, send_file, url_for
 from dotenv import load_dotenv
 import genanki
@@ -380,81 +381,105 @@ def create_deck():
     data = request.json
     sentences = data.get('sentences', [])
     word = data.get('word', 'vocabulary')
+    format_type = data.get('format', 'apkg')  # Nova opção: apkg ou csv
     
     try:
-        # CSS personalizado para o modelo Anki com suporte para destacar a palavra-chave
-        custom_css = """
-        .card {
-            font-family: Arial, sans-serif;
-            font-size: 20px;
-            text-align: left;
-            color: black;
-            background-color: white;
-            line-height: 1.5;
-            padding: 15px;
-        }
-        .keyword {
-            font-weight: bold;
-            color: #4a86e8;
-        }
-        """
-        
-        # Criar modelo de nota para cartões bidirecionais (Basic and Reversed)
-        model_id = random.randrange(1 << 30, 1 << 31)
-        model = genanki.Model(
-            model_id,
-            'Basic (and reversed card)',
-            fields=[
-                {'name': 'Front'},
-                {'name': 'Back'},
-            ],
-            templates=[
-                {
-                    'name': 'Card 1',
-                    'qfmt': '{{Front}}',
-                    'afmt': '{{FrontSide}}<hr id="answer">{{Back}}',
-                },
-                {
-                    'name': 'Card 2',
-                    'qfmt': '{{Back}}',
-                    'afmt': '{{FrontSide}}<hr id="answer">{{Front}}',
-                }
-            ],
-            css=custom_css
-        )
-        
-        # Criar deck
-        deck_id = random.randrange(1 << 30, 1 << 31)
-        deck = genanki.Deck(deck_id, f'English Examples: {word}')
-        
-        # Adicionar notas ao deck com tamanho de fonte maior
-        for sentence in sentences:
-            # Extrai os campos de acordo com o formato
-            if "english" in sentence and "portuguese" in sentence:
-                english = sentence["english"]
-                portuguese = sentence["portuguese"]
-            else:
-                english = sentence.get("back", "")
-                portuguese = sentence.get("translation", "")
+        if format_type == 'csv':
+            # Criar arquivo CSV para importação em um deck existente
+            temp_dir = tempfile.mkdtemp()
+            csv_path = os.path.join(temp_dir, f'english_sentences_{word}.csv')
             
-            note = genanki.Note(
-                model=model,
-                fields=[english, portuguese]
+            with open(csv_path, 'w', newline='', encoding='utf-8') as csvfile:
+                csvwriter = csv.writer(csvfile)
+                # Escrever cabeçalho que o Anki reconhece
+                csvwriter.writerow(['front', 'back'])
+                
+                # Adicionar as frases
+                for sentence in sentences:
+                    if "english" in sentence and "portuguese" in sentence:
+                        english = sentence["english"]
+                        portuguese = sentence["portuguese"]
+                    else:
+                        english = sentence.get("back", "")
+                        portuguese = sentence.get("translation", "")
+                    
+                    csvwriter.writerow([english, portuguese])
+            
+            return send_file(csv_path, as_attachment=True, download_name=f'english_sentences_{word}.csv')
+        else:
+            # CSS personalizado para o modelo Anki com suporte para destacar a palavra-chave
+            custom_css = """
+            .card {
+                font-family: Arial, sans-serif;
+                font-size: 20px;
+                text-align: left;
+                color: black;
+                background-color: white;
+                line-height: 1.5;
+                padding: 15px;
+            }
+            .keyword {
+                font-weight: bold;
+                color: #4a86e8;
+            }
+            """
+            
+            # Criar modelo de nota para cartões bidirecionais (Basic and Reversed)
+            model_id = random.randrange(1 << 30, 1 << 31)
+            model = genanki.Model(
+                model_id,
+                'Basic (and reversed card)',
+                fields=[
+                    {'name': 'Front'},
+                    {'name': 'Back'},
+                ],
+                templates=[
+                    {
+                        'name': 'Card 1',
+                        'qfmt': '{{Front}}',
+                        'afmt': '{{FrontSide}}<hr id="answer">{{Back}}',
+                    },
+                    {
+                        'name': 'Card 2',
+                        'qfmt': '{{Back}}',
+                        'afmt': '{{FrontSide}}<hr id="answer">{{Front}}',
+                    }
+                ],
+                css=custom_css
             )
-            deck.add_note(note)
             
-        # Criar arquivo temporário para o deck
-        temp_dir = tempfile.mkdtemp()
-        deck_path = os.path.join(temp_dir, f'english_examples_{word}.apkg')
-        
-        # Criar arquivo temporário para o deck
-        genanki.Package(deck).write_to_file(deck_path)
-        
-        return send_file(deck_path, as_attachment=True)
+            # Criar deck
+            deck_id = random.randrange(1 << 30, 1 << 31)
+            deck = genanki.Deck(deck_id, f'English Examples: {word}')
+            
+            # Adicionar notas ao deck com tamanho de fonte maior
+            for sentence in sentences:
+                # Extrai os campos de acordo com o formato
+                if "english" in sentence and "portuguese" in sentence:
+                    english = sentence["english"]
+                    portuguese = sentence["portuguese"]
+                else:
+                    english = sentence.get("back", "")
+                    portuguese = sentence.get("translation", "")
+                
+                note = genanki.Note(
+                    model=model,
+                    fields=[english, portuguese]
+                )
+                deck.add_note(note)
+                
+            # Criar arquivo temporário para o deck
+            temp_dir = tempfile.mkdtemp()
+            deck_path = os.path.join(temp_dir, f'english_examples_{word}.apkg')
+            
+            # Criar arquivo temporário para o deck
+            genanki.Package(deck).write_to_file(deck_path)
+            
+            return send_file(deck_path, as_attachment=True)
     
     except Exception as e:
-        print(f"Erro ao criar deck: {str(e)}")
-        return jsonify({'error': f'Erro ao criar deck: {str(e)}'}), 500
+        print(f"Erro ao criar arquivo: {str(e)}")
+        return jsonify({'error': f'Erro ao criar arquivo: {str(e)}'}), 500
 
 # Adicionar handler para o servidor WSGI
 app.debug = False
