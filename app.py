@@ -58,10 +58,15 @@ Focus on clear, straightforward usage examples that demonstrate proper grammar.
     # Continuar com o restante do prompt
     prompt = prompt_base + f"""
 For each English sentence, provide a natural-sounding Brazilian Portuguese translation (not European Portuguese).
-Note: Use Brazilian Portuguese vocabulary and expressions. For example:
+Focus on natural translations that capture the meaning and context, not just word-for-word translations.
+
+Pay special attention to idiomatic expressions, phrasal verbs, and slang:
+- "hang out" should be translated contextually as "sair", "curtir", "se encontrar", "passar tempo juntos", or "relaxar" depending on context
 - "hitchhike" should be "pedir carona" (not "pé-fogo")
 - "awesome" should be "incrível" or "sensacional" (not "fixe")
 - "take on" should be "assumir" or "enfrentar" (depending on context)
+
+Always translate the entire sentence as a whole, considering its complete meaning, rather than just replacing individual expressions.
 
 Output as JSON array in this format:
 [
@@ -72,7 +77,7 @@ Output as JSON array in this format:
   ... (9 more examples)
 ]
 
-Make translations sound natural to Brazilians while maintaining the meaning of the original English sentences."""
+Make translations sound natural to Brazilians, as if they were originally written in Portuguese."""
 
     try:
         # Chamada para a API GROQ
@@ -167,7 +172,7 @@ def highlight_keyword(text, keyword):
 
 # Função para traduzir texto para português como fallback
 def translate_to_portuguese(text):
-    """Tradução básica de frases simples em inglês para português brasileiro"""
+    """Tradução contextual de frases em inglês para português brasileiro"""
     translations = {
         # Verbos e expressões comuns
         "I need to": "Eu preciso",
@@ -210,7 +215,19 @@ def translate_to_portuguese(text):
         "show off": "se exibir",
         "work out": "resolver",
         "set up": "configurar",
-        "hang out": "passar tempo",
+        
+        # Expressões específicas com traduções contextuais
+        "hang out": "sair",
+        "hang out with friends": "sair com amigos",
+        "want to hang out": "quer sair",
+        "going to hang out": "vamos sair",
+        "hang out at": "ficar em",
+        "hang out at the beach": "passar um tempo na praia",
+        "we can hang out": "podemos nos encontrar",
+        "just want to hang out": "só quero relaxar",
+        "hang out together": "passar um tempo juntos",
+        "like to hang out": "gosto de passar tempo",
+        
         "speak up": "falar mais alto",
         "cheer up": "animar",
         "get over": "superar",
@@ -237,7 +254,6 @@ def translate_to_portuguese(text):
         # Gírias e expressões regionais comuns
         "cool": "legal",
         "awesome": "incrível",
-        "hang out": "dar um rolê",
         "buddy": "cara",
         "check out": "dar uma olhada",
         "rip-off": "roubada",
@@ -249,17 +265,71 @@ def translate_to_portuguese(text):
         "mind-blowing": "de cair o queixo",
         "sketchy": "suspeito",
         "what's up": "e aí",
+        
+        # Expressões contextuais para hang out
+        "We're going to hang out at the beach": "Vamos curtir a praia",
+        "I'm free on Friday, want to hang out": "Estou livre na sexta, quer sair comigo",
+        "After the concert, we can hang out": "Depois do show, podemos conversar/bater papo",
+        "I'm not really feeling like working today, just want to hang out": "Não estou muito motivado para trabalhar hoje, só quero relaxar"
     }
     
-    translated = text
-    for eng, port in translations.items():
-        translated = translated.replace(eng, port)
+    # Primeiro tentar frases completas para contexto
+    for phrase, translation in sorted(translations.items(), key=lambda x: len(x[0]), reverse=True):
+        if phrase in text:
+            text = text.replace(phrase, translation)
     
-    return translated
+    # Depois tentar palavras individuais que possam ter restado
+    for word, trans in sorted([(k, v) for k, v in translations.items() if ' ' not in k], key=lambda x: len(x[0]), reverse=True):
+        if word in text:
+            text = text.replace(word, trans)
+    
+    return text
+
+# Adicionar exemplos específicos para "hang out"
+def get_hang_out_examples():
+    """Exemplos específicos para 'hang out' com traduções corretas e contextuais"""
+    english_sentences = [
+        "We're going to <span class=\"keyword\">hang out</span> at the beach this weekend.",
+        "I'm free on Friday, want to <span class=\"keyword\">hang out</span> and grab dinner?",
+        "After the concert, we can <span class=\"keyword\">hang out</span> and talk about the music.",
+        "I'm not really feeling like working today, just want to <span class=\"keyword\">hang out</span>.",
+        "Let's <span class=\"keyword\">hang out</span> at my place and watch some movies.",
+        "She likes to <span class=\"keyword\">hang out</span> with her colleagues after work.",
+        "Where do the young people <span class=\"keyword\">hang out</span> in this town?",
+        "We used to <span class=\"keyword\">hang out</span> at the park when we were kids.",
+        "I need a place to <span class=\"keyword\">hang out</span> and relax for a few hours.",
+        "My friends and I <span class=\"keyword\">hang out</span> online playing video games."
+    ]
+    
+    portuguese_sentences = [
+        "Vamos curtir a praia neste fim de semana.",
+        "Estou livre na sexta, quer sair e jantar?",
+        "Depois do show, podemos bater um papo sobre a música.",
+        "Não estou muito a fim de trabalhar hoje, só quero relaxar.",
+        "Vamos ficar lá em casa e assistir alguns filmes.",
+        "Ela gosta de sair com os colegas de trabalho depois do expediente.",
+        "Onde os jovens costumam se reunir nesta cidade?",
+        "Costumávamos nos encontrar no parque quando éramos crianças.",
+        "Preciso de um lugar para passar o tempo e relaxar por algumas horas.",
+        "Meus amigos e eu nos reunimos online para jogar videogames."
+    ]
+    
+    sentences = []
+    for i, english in enumerate(english_sentences):
+        sentences.append({
+            "english": english,
+            "portuguese": portuguese_sentences[i]
+        })
+    
+    return sentences
 
 # Função para gerar frases de exemplo como fallback
 def get_fallback_sentences(input_text):
     """Gera frases de exemplo com traduções em português brasileiro para o fallback"""
+    
+    # Casos especiais para expressões muito usadas
+    if input_text.lower() == "hang out":
+        return get_hang_out_examples()
     
     # Determinar o tipo de entrada para gerar exemplos mais apropriados
     is_phrasal_verb = ' ' in input_text.strip()
