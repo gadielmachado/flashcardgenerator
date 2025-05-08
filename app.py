@@ -29,15 +29,34 @@ def index():
 def generate():
     data = request.json
     input_text = data.get('input_text', '')
+    use_natural_language = data.get('use_natural_language', False)
     
     if not input_text:
         return jsonify({'error': 'Texto não pode ser vazio'}), 400
     
-    # Prompt para gerar frases em inglês com tradução em português
-    prompt = f"""Create 10 natural-sounding example sentences using the word or phrase "{input_text}" in diverse contexts. 
+    # Prompt base
+    prompt_base = f"""Create 10 natural-sounding example sentences using the word or phrase "{input_text}" in diverse contexts. 
 Ensure all sentences are grammatically correct and sound like they were written by native English speakers.
-Use varied sentence structures, tenses, and common collocations with "{input_text}".
+Use varied sentence structures, tenses, and common collocations with "{input_text}"."""
 
+    # Adicionar instruções específicas para linguagem natural se a opção estiver ativada
+    if use_natural_language:
+        prompt_natural = f"""
+Make the sentences sound conversational and informal, as used in everyday situations.
+Include some common slang, idioms, and casual expressions where appropriate.
+The sentences should reflect how native speakers actually talk in real-life situations.
+Focus on contexts like casual conversations between friends, informal emails, text messages, or social media posts.
+"""
+        prompt_base += prompt_natural
+    else:
+        prompt_formal = f"""
+Keep the sentences more formal and standard, suitable for academic or professional contexts.
+Focus on clear, straightforward usage examples that demonstrate proper grammar.
+"""
+        prompt_base += prompt_formal
+
+    # Continuar com o restante do prompt
+    prompt = prompt_base + f"""
 For each English sentence, provide a natural-sounding Brazilian Portuguese translation (not European Portuguese).
 Note: Use Brazilian Portuguese vocabulary and expressions. For example:
 - "hitchhike" should be "pedir carona" (not "pé-fogo")
