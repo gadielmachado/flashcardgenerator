@@ -10,12 +10,15 @@ from flask import Flask, render_template, request, jsonify, send_file, url_for
 from dotenv import load_dotenv
 import genanki
 
-# Carregar variáveis de ambiente
+# Carregar variáveis de ambiente do arquivo .env (apenas para ambiente local)
 load_dotenv()
 
 app = Flask(__name__, static_folder='static')
-# Obter a chave API do ambiente
+
+# Obter a chave API do ambiente (melhorando para debugging)
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
+if not GROQ_API_KEY:
+    print("ALERTA: GROQ_API_KEY não encontrada nas variáveis de ambiente!")
 
 @app.route('/favicon.ico')
 def favicon():
@@ -25,6 +28,26 @@ def favicon():
 def index():
     return render_template('index.html')
 
+# Rota de diagnóstico (remover em produção)
+@app.route('/diagnostico')
+def diagnostico():
+    env_vars = {}
+    # Verificar variáveis específicas sem expor a chave completa
+    if GROQ_API_KEY:
+        env_vars['GROQ_API_KEY'] = f"Configurada (começa com {GROQ_API_KEY[:5]}...)"
+    else:
+        env_vars['GROQ_API_KEY'] = "Não configurada"
+    
+    # Verificar outras variáveis importantes
+    env_vars['VERCEL_ENV'] = os.environ.get('VERCEL_ENV', 'Não disponível')
+    env_vars['VERCEL_REGION'] = os.environ.get('VERCEL_REGION', 'Não disponível')
+    
+    return jsonify({
+        'ambiente': 'vercel' if os.environ.get('VERCEL_ENV') else 'local',
+        'variaveis': env_vars,
+        'timestamp': str(uuid.uuid4())  # Valor único para evitar cache
+    })
+
 @app.route('/generate', methods=['POST'])
 def generate():
     data = request.json
@@ -33,6 +56,17 @@ def generate():
     
     if not input_text:
         return jsonify({'error': 'Texto não pode ser vazio'}), 400
+    
+    # Verificar se a chave API está configurada
+    if not GROQ_API_KEY:
+        print("ERRO: GROQ_API_KEY não está configurada!")
+        # Fallback para frases pré-definidas se a chave não estiver disponível
+        fallback_sentences = get_fallback_sentences(input_text)
+        return jsonify({
+            'sentences': fallback_sentences, 
+            'keyword': input_text,
+            'warning': 'Usando frases pré-definidas porque a API GROQ não está configurada'
+        })
     
     # Prompt base
     prompt_base = f"""Create 10 natural-sounding example sentences using the word or phrase "{input_text}" in diverse contexts. 
@@ -80,6 +114,10 @@ Output as JSON array in this format:
 Make translations sound natural to Brazilians, as if they were originally written in Portuguese."""
 
     try:
+        # Verificar novamente a chave API (para debugging)
+        if not GROQ_API_KEY:
+            return jsonify({'error': 'GROQ_API_KEY não configurada. Verifique as variáveis de ambiente.'}), 500
+            
         # Chamada para a API GROQ
         response = requests.post(
             "https://api.groq.com/openai/v1/chat/completions",
@@ -97,6 +135,9 @@ Make translations sound natural to Brazilians, as if they were originally writte
         if response.status_code != 200:
             error_message = f"Erro na API GROQ (Status {response.status_code}): {response.text}"
             print(error_message)
+            # Adicionar mais informações de debug
+            print(f"Valor da GROQ_API_KEY (primeiros 5 caracteres): {GROQ_API_KEY[:5]}...")
+            print(f"Headers enviados: {response.request.headers}")
             return jsonify({'error': error_message}), 500
         
         try:
