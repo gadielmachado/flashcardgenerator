@@ -17,6 +17,34 @@ Uma aplicação web simples para gerar frases de exemplo em inglês e criar flas
 - Genanki
 - Python-dotenv
 
+## Configuração de Segurança
+
+### Configuração Local
+
+1. Crie um arquivo `.env` na raiz do projeto com o seguinte conteúdo:
+   ```
+   GROQ_API_KEY=sua_chave_api_groq_aqui
+   ```
+
+2. Substitua `sua_chave_api_groq_aqui` com sua chave API Groq real.
+
+3. Certifique-se que o arquivo `.env` está no `.gitignore` para não ser enviado ao GitHub.
+
+### Configuração no Vercel
+
+Se o aplicativo estiver hospedado na Vercel, adicione a variável de ambiente:
+
+1. No painel da Vercel, acesse seu projeto
+2. Vá para "Settings" → "Environment Variables"
+3. Adicione uma nova variável chamada `GROQ_API_KEY` com sua chave API como valor
+4. Clique em "Save" para salvar as alterações
+
+### Segurança da Chave API
+
+- Nunca compartilhe sua chave API ou a adicione diretamente no código-fonte
+- Rotacione periodicamente sua chave API para maior segurança
+- Se suspeitar que sua chave foi comprometida, revogue-a e gere uma nova
+
 ## Instalação
 
 1. Clone o repositório:
@@ -30,10 +58,7 @@ cd anki-generate
 pip install -r requirements.txt
 ```
 
-3. Configure o arquivo `.env` com sua chave API GROQ:
-```
-GROQ_API_KEY=sua_chave_api
-```
+3. Configure o arquivo `.env` com sua chave API GROQ conforme descrito acima
 
 4. Execute a aplicação:
 ```

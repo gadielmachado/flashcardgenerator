@@ -14,8 +14,8 @@ import genanki
 load_dotenv()
 
 app = Flask(__name__, static_folder='static')
-# Definir a chave API diretamente
-GROQ_API_KEY = "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"
+# Obter a chave API do ambiente
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 
 @app.route('/favicon.ico')
 def favicon():
