@@ -39,6 +39,10 @@ Se o aplicativo estiver hospedado na Vercel, adicione a variÃ¡vel de ambiente:
 3. Adicione uma nova variÃ¡vel chamada `GROQ_API_KEY` com sua chave API como valor
 4. Clique em "Save" para salvar as alteraÃ§Ãµes
 
+### Nota sobre a API GROQ
+
+Este aplicativo utiliza a API GROQ para gerar frases de exemplo em inglÃªs e suas traduÃ§Ãµes em portuguÃªs brasileiro. Ã‰ importante manter a chave API atualizada tanto no ambiente local quanto no ambiente de produÃ§Ã£o para garantir o correto funcionamento da aplicaÃ§Ã£o.
+
 ### SeguranÃ§a da Chave API
 
 - Nunca compartilhe sua chave API ou a adicione diretamente no cÃ³digo-fonte
@@ -85,3 +89,8 @@ python app.py
 ## LicenÃ§a
 
 MIT 
+
+
+### Nota sobre a API GROQ
+
+Este aplicativo utiliza a API GROQ para gerar frases de exemplo em inglês e suas traduções em português brasileiro. É importante manter a chave API atualizada tanto no ambiente local quanto no ambiente de produção para garantir o correto funcionamento da aplicação.
