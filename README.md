@@ -93,4 +93,4 @@ MIT
 
 ### Nota sobre a API GROQ
 
-Este aplicativo utiliza a API GROQ para gerar frases de exemplo em inglês e suas traduções em português brasileiro. É importante manter a chave API atualizada tanto no ambiente local quanto no ambiente de produção para garantir o correto funcionamento da aplicação.
+Este aplicativo utiliza a API GROQ para gerar frases de exemplo em inglï¿½s e suas traduï¿½ï¿½es em portuguï¿½s brasileiro. ï¿½ importante manter a chave API atualizada tanto no ambiente local quanto no ambiente de produï¿½ï¿½o para garantir o correto funcionamento da aplicaï¿½ï¿½o.
